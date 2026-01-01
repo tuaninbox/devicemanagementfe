@@ -8,6 +8,7 @@ export default function DeviceList({ devices, onSelectionChange }) {
   const [expandedModules, setExpandedModules] = useState({});
   const [selected, setSelected] = useState({});
   const [selectedModules, setSelectedModules] = useState({});
+  const [showFilters, setShowFilters] = useState(false);
 
   // Column filters
   const [filters, setFilters] = useState({
@@ -15,6 +16,28 @@ export default function DeviceList({ devices, onSelectionChange }) {
     mgmt: "",
     model: "",
     serial: "",
+  });
+
+  const [showModuleFilters, setShowModuleFilters] = useState(false);
+
+  const [moduleFilters, setModuleFilters] = useState({
+    name: "",
+    part_number: "",
+    serial: "",
+    description: "",
+    warranty: "",
+    expiry: "",
+    sfp: "",
+  });
+
+  const [showInterfaceFilters, setShowInterfaceFilters] = useState(false);
+
+  const [interfaceFilters, setInterfaceFilters] = useState({
+    name: "",
+    status: "",
+    speed: "",
+    description: "",
+    sfp: "",
   });
 
   // Sorting
@@ -105,7 +128,16 @@ export default function DeviceList({ devices, onSelectionChange }) {
 
   return (
     <section className="panel panel-result">
+      <div className="title-row">
       <h3>Devices in Inventory</h3>
+      <button
+          className="button"
+          onClick={() => setShowFilters((prev) => !prev)}
+      >
+          {showFilters ? "Hide Filters" : "Show Filters"}
+      </button>
+      </div>
+
 
       <table className="device-table">
         <thead>
@@ -139,14 +171,17 @@ export default function DeviceList({ devices, onSelectionChange }) {
                   : "▼"
                 : ""}
               <br />
-              <input
+            {showFilters && (
+            <input
                 className="filter-input"
                 placeholder="Filter"
                 value={filters.hostname}
                 onChange={(e) =>
-                  setFilters({ ...filters, hostname: e.target.value })
+                setFilters({ ...filters, hostname: e.target.value })
                 }
-              />
+            />
+            )}
+
             </th>
 
             {/* Mgmt IP */}
@@ -161,14 +196,17 @@ export default function DeviceList({ devices, onSelectionChange }) {
                   : "▼"
                 : ""}
               <br />
-              <input
+            {showFilters && (
+            <input
                 className="filter-input"
                 placeholder="Filter"
-                value={filters.mgmt}
+                value={filters.hostname}
                 onChange={(e) =>
-                  setFilters({ ...filters, mgmt: e.target.value })
+                setFilters({ ...filters, hostname: e.target.value })
                 }
-              />
+            />
+            )}
+
             </th>
 
             {/* Model */}
@@ -180,14 +218,17 @@ export default function DeviceList({ devices, onSelectionChange }) {
                   : "▼"
                 : ""}
               <br />
-              <input
+            {showFilters && (
+            <input
                 className="filter-input"
                 placeholder="Filter"
-                value={filters.model}
+                value={filters.hostname}
                 onChange={(e) =>
-                  setFilters({ ...filters, model: e.target.value })
+                setFilters({ ...filters, hostname: e.target.value })
                 }
-              />
+            />
+            )}
+
             </th>
 
             {/* Serial */}
@@ -202,14 +243,17 @@ export default function DeviceList({ devices, onSelectionChange }) {
                   : "▼"
                 : ""}
               <br />
-              <input
+            {showFilters && (
+            <input
                 className="filter-input"
                 placeholder="Filter"
-                value={filters.serial}
+                value={filters.hostname}
                 onChange={(e) =>
-                  setFilters({ ...filters, serial: e.target.value })
+                setFilters({ ...filters, hostname: e.target.value })
                 }
-              />
+            />
+            )}
+
             </th>
 
             <th className="center">Config</th>
@@ -275,228 +319,499 @@ export default function DeviceList({ devices, onSelectionChange }) {
               {expanded[d.id] && (
                 <tr className="expanded-row">
                   <td colSpan="8">
-                    {/* INTERFACES */}
+                {/* ========================= INTERFACES SECTION ========================= */}
+
+                <h4
+                style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "10px",
+                    cursor: "pointer",
+                }}
+                onClick={() =>
+                    setExpandedInterfaces((prev) => ({
+                    ...prev,
+                    [d.id]: !prev[d.id],
+                    }))
+                }
+                >
+                {/* Expand / Collapse Icon */}
+                <span
+                    style={{
+                    fontSize: "18px",
+                    fontWeight: "bold",
+                    userSelect: "none",
+                    }}
+                >
+                    {expandedInterfaces[d.id] ? "−" : "+"}
+                </span>
+
+                Interfaces
+
+                {/* Show/Hide Filters button — aligned right */}
+                <button
+                    className="button"
+                    style={{ marginLeft: "auto" }}
+                    onClick={(e) => {
+                    e.stopPropagation();
+                    setShowInterfaceFilters((prev) => !prev);
+                    }}
+                >
+                    {showInterfaceFilters ? "Hide Filters" : "Show Filters"}
+                </button>
+                </h4>
+
+                {/* INTERFACES TABLE */}
+                {expandedInterfaces[d.id] && (
+                <table className="subtable">
+                    <thead>
+                    <tr>
+                        <th className="center">No</th>
+
+                        <th>
+                        Name
+                        {showInterfaceFilters && (
+                            <input
+                            className="filter-input"
+                            placeholder="Filter"
+                            value={interfaceFilters.name}
+                            onChange={(e) =>
+                                setInterfaceFilters({
+                                ...interfaceFilters,
+                                name: e.target.value,
+                                })
+                            }
+                            />
+                        )}
+                        </th>
+
+                        <th>
+                        Status / Protocol
+                        {showInterfaceFilters && (
+                            <input
+                            className="filter-input"
+                            placeholder="Filter"
+                            value={interfaceFilters.status}
+                            onChange={(e) =>
+                                setInterfaceFilters({
+                                ...interfaceFilters,
+                                status: e.target.value,
+                                })
+                            }
+                            />
+                        )}
+                        </th>
+
+                        <th>
+                        Speed
+                        {showInterfaceFilters && (
+                            <input
+                            className="filter-input"
+                            placeholder="Filter"
+                            value={interfaceFilters.speed}
+                            onChange={(e) =>
+                                setInterfaceFilters({
+                                ...interfaceFilters,
+                                speed: e.target.value,
+                                })
+                            }
+                            />
+                        )}
+                        </th>
+
+                        <th>
+                        Description
+                        {showInterfaceFilters && (
+                            <input
+                            className="filter-input"
+                            placeholder="Filter"
+                            value={interfaceFilters.description}
+                            onChange={(e) =>
+                                setInterfaceFilters({
+                                ...interfaceFilters,
+                                description: e.target.value,
+                                })
+                            }
+                            />
+                        )}
+                        </th>
+
+                        <th>
+                        SFP / Module Info
+                        {showInterfaceFilters && (
+                            <input
+                            className="filter-input"
+                            placeholder="Filter"
+                            value={interfaceFilters.sfp}
+                            onChange={(e) =>
+                                setInterfaceFilters({
+                                ...interfaceFilters,
+                                sfp: e.target.value,
+                                })
+                            }
+                            />
+                        )}
+                        </th>
+                    </tr>
+                    </thead>
+
+                    <tbody>
+                    {d.interfaces
+                        ?.filter((i) => {
+                        const name = (i.name || "").toLowerCase();
+                        const statusCombined = `${i.status || ""}/${i.line_protocol || ""}`
+                            .toLowerCase();
+                        const speed = (i.speed || "").toLowerCase();
+                        const desc = (i.description || "").toLowerCase();
+
+                        const parentModule =
+                            i.sfp_module &&
+                            d.modules.find((m) => m.id === i.sfp_module.module_id);
+
+                        const sfpText = parentModule
+                            ? `${parentModule.description} ${parentModule.part_number} ${parentModule.serial_number}`
+                                .toLowerCase()
+                            : "none";
+
+                        return (
+                            name.includes(interfaceFilters.name.toLowerCase()) &&
+                            statusCombined.includes(interfaceFilters.status.toLowerCase()) &&
+                            speed.includes(interfaceFilters.speed.toLowerCase()) &&
+                            desc.includes(interfaceFilters.description.toLowerCase()) &&
+                            sfpText.includes(interfaceFilters.sfp.toLowerCase())
+                        );
+                        })
+                        .map((i, idx) => {
+                        const parentModule =
+                            i.sfp_module &&
+                            d.modules.find((m) => m.id === i.sfp_module.module_id);
+
+                        return (
+                            <tr key={i.id}>
+                            <td className="center">{idx + 1}</td>
+                            <td>{i.name}</td>
+                            <td>
+                                {(i.status || "-") + "/" + (i.line_protocol || "-")}
+                            </td>
+                            <td>{i.speed}</td>
+                            <td>{i.description}</td>
+
+                            <td>
+                                {parentModule ? (
+                                <div>
+                                    <strong>{parentModule.description}</strong>
+                                    <br />
+                                    PN: {parentModule.part_number}
+                                    <br />
+                                    SN: {parentModule.serial_number}
+                                    <br />
+                                    HW: {parentModule.hw_revision}
+                                </div>
+                                ) : (
+                                "None"
+                                )}
+                            </td>
+                            </tr>
+                        );
+                        })}
+                    </tbody>
+                </table>
+                )}
+
+                {/* ========================= END INTERFACES SECTION ========================= */}
+
+
+                    {/* ========================= MODULES SECTION ========================= */}
+
                     <h4
-                      style={{
-                        display: "flex",
-                        alignItems: "center",
-                        gap: "10px",
-                        cursor: "pointer",
-                      }}
-                      onClick={() =>
-                        setExpandedInterfaces((prev) => ({
-                          ...prev,
-                          [d.id]: !prev[d.id],
-                        }))
-                      }
-                    >
-                      <span
-                        style={{
-                          fontSize: "18px",
-                          fontWeight: "bold",
-                          userSelect: "none",
-                        }}
-                      >
-                        {expandedInterfaces[d.id] ? "−" : "+"}
-                      </span>
-                      Interfaces
-                    </h4>
-
-                    {expandedInterfaces[d.id] && (
-                      <table className="subtable">
-                        <thead>
-                          <tr>
-                            <th className="center">No</th>
-                            <th>Name</th>
-                            <th>Status / Protocol</th>
-                            <th>Speed</th>
-                            <th>Description</th>
-                            <th>SFP / Module Info</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {d.interfaces?.map((i, idx) => {
-                            const parentModule =
-                              i.sfp_module &&
-                              d.modules.find(
-                                (m) => m.id === i.sfp_module.module_id
-                              );
-
-                            return (
-                              <tr key={i.id}>
-                                <td className="center">{idx + 1}</td>
-                                <td>{i.name}</td>
-                                <td>
-                                  {(i.status || "-") +
-                                    "/" +
-                                    (i.line_protocol || "-")}
-                                </td>
-                                <td>{i.speed}</td>
-                                <td>{i.description}</td>
-
-                                <td>
-                                  {parentModule ? (
-                                    <div>
-                                      <strong>
-                                        {parentModule.description}
-                                      </strong>
-                                      <br />
-                                      PN: {parentModule.part_number}
-                                      <br />
-                                      SN: {parentModule.serial_number}
-                                      <br />
-                                      HW: {parentModule.hw_revision}
-                                    </div>
-                                  ) : (
-                                    "None"
-                                  )}
-                                </td>
-                              </tr>
-                            );
-                          })}
-                        </tbody>
-                      </table>
-                    )}
-
-                    {/* MODULES */}
-                    <h4
-                      style={{
+                    style={{
                         marginTop: "20px",
                         display: "flex",
                         alignItems: "center",
                         gap: "10px",
                         cursor: "pointer",
-                      }}
-                      onClick={() =>
+                    }}
+                    onClick={() =>
                         setExpandedModules((prev) => ({
-                          ...prev,
-                          [d.id]: !prev[d.id],
+                        ...prev,
+                        [d.id]: !prev[d.id],
                         }))
-                      }
+                    }
                     >
-                      <span
+                    {/* Expand / Collapse Icon */}
+                    <span
                         style={{
-                          fontSize: "18px",
-                          fontWeight: "bold",
-                          userSelect: "none",
+                        fontSize: "18px",
+                        fontWeight: "bold",
+                        userSelect: "none",
                         }}
-                      >
+                    >
                         {expandedModules[d.id] ? "−" : "+"}
-                      </span>
-                      Modules
+                    </span>
 
-                      {/* Sync Warranty Button */}
-                      <button
+                    {/* Title */}
+                    Modules
+
+                    {/* Sync Warranty Button — stays on LEFT */}
+                    <button
                         className="button"
-                        onClick={() => {
-                          const selectedIds = Object.keys(selectedModules)
+                        style={{ marginLeft: "10px" }}
+                        onClick={(e) => {
+                        e.stopPropagation();
+                        const selectedIds = Object.keys(selectedModules)
                             .filter((id) => selectedModules[id])
                             .map((id) => Number(id));
 
-                          if (selectedIds.length === 0) {
-                            console.log(
-                              "Syncing ALL modules for device:",
-                              d.hostname
-                            );
-                          } else {
+                        if (selectedIds.length === 0) {
+                            console.log("Syncing ALL modules for device:", d.hostname);
+                        } else {
                             console.log("Syncing SELECTED modules:", selectedIds);
-                          }
+                        }
                         }}
-                      >
+                    >
                         {Object.values(selectedModules).some((v) => v)
-                          ? `Sync Warranty Information (${
-                              Object.values(selectedModules).filter(Boolean)
-                                .length
+                        ? `Sync Warranty Information (${
+                            Object.values(selectedModules).filter(Boolean).length
                             } Selected Modules)`
-                          : "Sync Warranty Information (All Modules)"}
-                      </button>
+                        : "Sync Warranty Information (All Modules)"}
+                    </button>
+
+                    {/* Show/Hide Filters — moves to RIGHT */}
+                    <button
+                        className="button"
+                        style={{ marginLeft: "auto" }}
+                        onClick={(e) => {
+                        e.stopPropagation();
+                        setShowModuleFilters((prev) => !prev);
+                        }}
+                    >
+                        {showModuleFilters ? "Hide Filters" : "Show Filters"}
+                    </button>
                     </h4>
 
+                    {/* MODULES TABLE */}
                     {expandedModules[d.id] && (
-                      <table className="subtable">
+                    <table className="subtable">
                         <thead>
-                          <tr>
+                        <tr>
                             <th className="center">
-                              <input
+                            <input
                                 type="checkbox"
                                 checked={
-                                  d.modules.length > 0 &&
-                                  d.modules.every((m) => selectedModules[m.id])
+                                d.modules.length > 0 &&
+                                d.modules.every((m) => selectedModules[m.id])
                                 }
                                 onChange={(e) => {
-                                  const checked = e.target.checked;
-                                  const updated = { ...selectedModules };
-                                  d.modules.forEach((m) => {
+                                const checked = e.target.checked;
+                                const updated = { ...selectedModules };
+                                d.modules.forEach((m) => {
                                     updated[m.id] = checked;
-                                  });
-                                  setSelectedModules(updated);
+                                });
+                                setSelectedModules(updated);
                                 }}
-                              />
+                            />
                             </th>
+
                             <th className="center">No</th>
-                            <th>Name</th>
-                            <th>Part Number</th>
-                            <th>Serial</th>
-                            <th>Description</th>
-                            <th>Under Warranty</th>
-                            <th>Expiry</th>
-                            <th>SFP Module</th>
-                          </tr>
+
+                            <th>
+                            Name
+                            {showModuleFilters && (
+                                <input
+                                className="filter-input"
+                                placeholder="Filter"
+                                value={moduleFilters.name}
+                                onChange={(e) =>
+                                    setModuleFilters({
+                                    ...moduleFilters,
+                                    name: e.target.value,
+                                    })
+                                }
+                                />
+                            )}
+                            </th>
+
+                            <th>
+                            Part Number
+                            {showModuleFilters && (
+                                <input
+                                className="filter-input"
+                                placeholder="Filter"
+                                value={moduleFilters.part_number}
+                                onChange={(e) =>
+                                    setModuleFilters({
+                                    ...moduleFilters,
+                                    part_number: e.target.value,
+                                    })
+                                }
+                                />
+                            )}
+                            </th>
+
+                            <th>
+                            Serial
+                            {showModuleFilters && (
+                                <input
+                                className="filter-input"
+                                placeholder="Filter"
+                                value={moduleFilters.serial}
+                                onChange={(e) =>
+                                    setModuleFilters({
+                                    ...moduleFilters,
+                                    serial: e.target.value,
+                                    })
+                                }
+                                />
+                            )}
+                            </th>
+
+                            <th>
+                            Description
+                            {showModuleFilters && (
+                                <input
+                                className="filter-input"
+                                placeholder="Filter"
+                                value={moduleFilters.description}
+                                onChange={(e) =>
+                                    setModuleFilters({
+                                    ...moduleFilters,
+                                    description: e.target.value,
+                                    })
+                                }
+                                />
+                            )}
+                            </th>
+
+                            <th>
+                            Under Warranty
+                            {showModuleFilters && (
+                                <input
+                                className="filter-input"
+                                placeholder="yes/no"
+                                value={moduleFilters.warranty}
+                                onChange={(e) =>
+                                    setModuleFilters({
+                                    ...moduleFilters,
+                                    warranty: e.target.value,
+                                    })
+                                }
+                                />
+                            )}
+                            </th>
+
+                            <th>
+                            Expiry
+                            {showModuleFilters && (
+                                <input
+                                className="filter-input"
+                                placeholder="Filter"
+                                value={moduleFilters.expiry}
+                                onChange={(e) =>
+                                    setModuleFilters({
+                                    ...moduleFilters,
+                                    expiry: e.target.value,
+                                    })
+                                }
+                                />
+                            )}
+                            </th>
+
+                            <th>
+                            SFP Module
+                            {showModuleFilters && (
+                                <input
+                                className="filter-input"
+                                placeholder="Filter"
+                                value={moduleFilters.sfp}
+                                onChange={(e) =>
+                                    setModuleFilters({
+                                    ...moduleFilters,
+                                    sfp: e.target.value,
+                                    })
+                                }
+                                />
+                            )}
+                            </th>
+                        </tr>
                         </thead>
 
                         <tbody>
-                          {d.modules?.map((m, idx) => (
+                        {d.modules
+                            ?.filter((m) => {
+                            const name = (m.name || "").toLowerCase();
+                            const part = (m.part_number || "").toLowerCase();
+                            const serial = (m.serial_number || "").toLowerCase();
+                            const desc = (m.description || "").toLowerCase();
+                            const warranty = m.under_warranty ? "yes" : "no";
+                            const expiry = m.warranty_expiry
+                                ? new Date(m.warranty_expiry).toLocaleDateString().toLowerCase()
+                                : "";
+                            const sfp = m.sfp_module
+                                ? `${m.sfp_module.interface_name} ${m.sfp_module.part_number}`.toLowerCase()
+                                : "";
+
+                            return (
+                                name.includes(moduleFilters.name.toLowerCase()) &&
+                                part.includes(moduleFilters.part_number.toLowerCase()) &&
+                                serial.includes(moduleFilters.serial.toLowerCase()) &&
+                                desc.includes(moduleFilters.description.toLowerCase()) &&
+                                warranty.includes(moduleFilters.warranty.toLowerCase()) &&
+                                expiry.includes(moduleFilters.expiry.toLowerCase()) &&
+                                sfp.includes(moduleFilters.sfp.toLowerCase())
+                            );
+                            })
+                            .map((m, idx) => (
                             <tr
                                 key={m.id}
-                                className={selectedModules[m.id] ? "row-selected" : ""}>
-                              <td className="center">
+                                className={selectedModules[m.id] ? "row-selected" : ""}
+                            >
+                                <td className="center">
                                 <input
-                                  type="checkbox"
-                                  checked={!!selectedModules[m.id]}
-                                  onChange={() =>
+                                    type="checkbox"
+                                    checked={!!selectedModules[m.id]}
+                                    onChange={() =>
                                     setSelectedModules((prev) => ({
-                                      ...prev,
-                                      [m.id]: !prev[m.id],
+                                        ...prev,
+                                        [m.id]: !prev[m.id],
                                     }))
-                                  }
+                                    }
                                 />
-                              </td>
+                                </td>
 
-                              <td className="center">{idx + 1}</td>
+                                <td className="center">{idx + 1}</td>
 
-                              <td>{m.name}</td>
-                              <td>{m.part_number}</td>
-                              <td>{m.serial_number}</td>
-                              <td>{m.description}</td>
+                                <td>{m.name}</td>
+                                <td>{m.part_number}</td>
+                                <td>{m.serial_number}</td>
+                                <td>{m.description}</td>
 
-                              <td>{m.under_warranty ? "Yes" : "No"}</td>
+                                <td>{m.under_warranty ? "Yes" : "No"}</td>
 
-                              <td>
+                                <td>
                                 {m.warranty_expiry
-                                  ? new Date(
-                                      m.warranty_expiry
-                                    ).toLocaleDateString()
-                                  : "–"}
-                              </td>
+                                    ? new Date(m.warranty_expiry).toLocaleDateString()
+                                    : "–"}
+                                </td>
 
-                              <td>
+                                <td>
                                 {m.sfp_module ? (
-                                  <div>
-                                    <strong>
-                                      {m.sfp_module.interface_name}
-                                    </strong>
+                                    <div>
+                                    <strong>{m.sfp_module.interface_name}</strong>
                                     <br />
                                     PN: {m.sfp_module.part_number}
-                                  </div>
+                                    </div>
                                 ) : (
-                                  "None"
+                                    "None"
                                 )}
-                              </td>
+                                </td>
                             </tr>
-                          ))}
+                            ))}
                         </tbody>
-                      </table>
+                    </table>
                     )}
+
+                    {/* ========================= END MODULES SECTION ========================= */}
+
                   </td>
                 </tr>
               )}

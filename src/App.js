@@ -18,8 +18,6 @@ function App() {
   const [expandedModules, setExpandedModules] = useState({});
 
 
-
-
   const handleSync = async () => {
     setLoading(true);
     setResult(null);

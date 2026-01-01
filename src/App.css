@@ -95,6 +95,7 @@ body {
   color: white;
   border-radius: 4px;
   text-decoration: none;
+  cursor: pointer;
 }
 
 .file-content {
@@ -150,6 +151,8 @@ body {
   border-radius: 4px;
 }
 
+th { vertical-align: top; }
+
 .center {
   text-align: center;
   vertical-align: middle;
@@ -171,4 +174,16 @@ body {
 
 .sortable:hover {
   color: #2563eb;
+}
+
+/* Title of table */
+.title-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.title-row h3 {
+  margin: 0;
 }
