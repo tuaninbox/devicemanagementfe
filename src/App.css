@@ -187,3 +187,7 @@ th { vertical-align: top; }
 .title-row h3 {
   margin: 0;
 }
+
+.page-size-select {
+  margin-left: 12px; /* or 16px if you want more breathing room */
+}

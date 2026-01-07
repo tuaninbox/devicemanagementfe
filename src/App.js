@@ -1,29 +1,29 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import axios from "axios";
-import { BrowserRouter, Routes, Route, Link } from "react-router-dom";
+import { BrowserRouter } from "react-router-dom";
 import DeviceList from "./DeviceList";
-import FileViewer from "./FileViewer";
 import "./App.css";
 
 const API_BASE = "http://localhost:8000";
+
 
 function App() {
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState(null);
   const [error, setError] = useState(null);
+
   const [devices, setDevices] = useState([]);
   const [selectedDevices, setSelectedDevices] = useState([]);
-  const [selectedModules, setSelectedModules] = useState({});
-  const [expandedInterfaces, setExpandedInterfaces] = useState({});
-  const [expandedModules, setExpandedModules] = useState({});
 
+  // Pagination state
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(50);
+  const [total, setTotal] = useState(0);
 
   const handleSync = async () => {
     setLoading(true);
     setResult(null);
     setError(null);
-
-    // const trimmed = hostnamesInput.trim();
 
     const payload = {
       hostnames:
@@ -34,7 +34,6 @@ function App() {
               return dev.hostname;
             }),
     };
-
 
     try {
       const res = await axios.post(`${API_BASE}/devices/sync`, payload);
@@ -50,11 +49,30 @@ function App() {
     setLoading(true);
     setError(null);
     setResult(null);
-    setDevices([]);
 
     try {
-      const res = await axios.get(`${API_BASE}/devices`);
-      setDevices(res.data);
+      const res = await axios.get(`${API_BASE}/devices`, {
+        params: { page, page_size: pageSize },
+      });
+
+      console.log("API response:", res.data);
+
+      const data = res.data;
+
+      if (Array.isArray(data.items)) {
+        // New paginated backend
+        setDevices(data.items);
+        setTotal(data.total ?? data.items.length);
+      } else if (Array.isArray(data)) {
+        // Old backend (plain array)
+        setDevices(data);
+        setTotal(data.length);
+      } else {
+        console.warn("Unexpected API format:", data);
+        setDevices([]);
+        setTotal(0);
+      }
+
     } catch (err) {
       setError(err.response?.data || { error: err.message });
     } finally {
@@ -62,38 +80,55 @@ function App() {
     }
   };
 
+  // Reload when page or pageSize changes
+  useEffect(() => {
+    handleListDevices();
+  }, [page, pageSize]);
+  
   return (
     <BrowserRouter>
       <div className="app-root">
         <header className="app-header">
           <h1>Device Sync Dashboard</h1>
-          {/* <nav>
-            <Link to="/">Sync</Link> | <Link to="/devices">Devices</Link>
-          </nav> */}
         </header>
 
         <main className="app-main">
-
-          {/* Top Toolbar */}
           <div className="toolbar">
-            <button onClick={handleListDevices} disabled={loading}>
+            {/* <button onClick={handleListDevices} disabled={loading}>
               {loading ? "Loading…" : "List Devices"}
+            </button> */}
+            {/* <button
+              onClick={() => {
+                console.log("List Devices clicked");
+                handleListDevices();
+              }}
+              disabled={loading}
+            >
+              {loading ? "Loading…" : "List Devices"}
+            </button> */}
+            <button
+              type="button"
+              onClick={() => {
+                console.log("Button clicked");
+                handleListDevices();
+              }}
+            >
+              List Devices
             </button>
 
-          <button onClick={handleSync} disabled={loading}>
-            {selectedDevices.length === 0
-              ? "Sync Devices (All)"
-              : `Sync (${selectedDevices.length}) Selected Devices`}
-          </button>
+            <button onClick={handleSync} disabled={loading}>
+              {selectedDevices.length === 0
+                ? "Sync Devices (All)"
+                : `Sync (${selectedDevices.length}) Selected Devices`}
+            </button>
 
-          <button disabled>
-            {selectedDevices.length === 0
-              ? "Sync Warranty Information (All)"
-              : `Sync Warranty Information (${selectedDevices.length})`}
-          </button>
+            <button disabled>
+              {selectedDevices.length === 0
+                ? "Sync Warranty Information (All)"
+                : `Sync Warranty Information (${selectedDevices.length})`}
+            </button>
           </div>
 
-           {/* Status Messages */}
           {loading && <div className="status status-info">Processing…</div>}
 
           {error && (
@@ -103,21 +138,25 @@ function App() {
             </div>
           )}
 
-          {/* Device Table */}
-          {devices.length > 0 && (
-            <DeviceList devices={devices} onSelectionChange={setSelectedDevices} />
+          {Array.isArray(devices) && devices.length > 0 && (
+            <DeviceList
+              devices={devices}
+              onSelectionChange={setSelectedDevices}
+              page={page}
+              setPage={setPage}
+              pageSize={pageSize}
+              setPageSize={setPageSize}
+              total={total}
+            />
           )}
 
-          {/* Sync Result */}
           {result && (
             <div className="status status-success">
               <h3>Result</h3>
               <pre>{JSON.stringify(result, null, 2)}</pre>
             </div>
           )}
-
         </main>
-
       </div>
     </BrowserRouter>
   );
