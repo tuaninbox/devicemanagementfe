@@ -24,6 +24,8 @@ export default function DeviceList({
   pageSize,
   setPageSize,
   total,
+  onSyncEox,
+  setError  
 }) {
   const [expanded, setExpanded] = useState({});
   const [expandedInterfaces, setExpandedInterfaces] = useState({});
@@ -586,30 +588,45 @@ export default function DeviceList({
                           style={{ marginLeft: "10px" }}
                           onClick={(e) => {
                             e.stopPropagation();
+
+                            // 1. Collect selected module IDs
                             const selectedIds = Object.keys(selectedModules)
                               .filter((id) => selectedModules[id])
                               .map((id) => Number(id));
 
+                            let modulesToSync = [];
+
                             if (selectedIds.length === 0) {
-                              console.log(
-                                "Syncing ALL modules for device:",
-                                d.hostname
-                              );
+                              // ⭐ No modules selected → sync ALL modules for this device
+                              modulesToSync = d.modules;
                             } else {
-                              console.log(
-                                "Syncing SELECTED modules:",
-                                selectedIds
-                              );
+                              // ⭐ Sync only selected modules
+                              modulesToSync = d.modules.filter((m) => selectedIds.includes(m.id));
                             }
+
+                            // 2. Extract valid serial numbers
+                            const serialNumbers = modulesToSync
+                              .map((m) => m.serial_number?.trim().toUpperCase())
+                              .filter(Boolean); // remove null/undefined/empty
+
+                            if (serialNumbers.length === 0) {
+                              setError({
+                                message: "No valid serial numbers found for selected modules",
+                              });
+                              return;
+                            }
+
+                            // 3. Call the App.js handler with the new payload format
+                            onSyncEox({ serialNumbers });
                           }}
                         >
                           {Object.values(selectedModules).some((v) => v)
                             ? `Sync Warranty Information (${
-                                Object.values(selectedModules).filter(Boolean)
-                                  .length
+                                Object.values(selectedModules).filter(Boolean).length
                               } Selected Modules)`
                             : "Sync Warranty Information (All Modules)"}
                         </button>
+
                         <button
                           className="button"
                           style={{ marginLeft: "auto" }}

@@ -1,8 +1,10 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback} from "react";
 import axios from "axios";
-import { BrowserRouter } from "react-router-dom";
+import { Routes, Route, useNavigate } from "react-router-dom";
 import DeviceList from "./DeviceList";
+import Jobs from "./Jobs";
 import "./App.css";
+import { syncDevices, syncModulesEox, listDevices } from "./api/sync";
 
 const API_BASE = "http://localhost:8000";
 
@@ -20,24 +22,36 @@ function App() {
   const [pageSize, setPageSize] = useState(50);
   const [total, setTotal] = useState(0);
 
+  const navigate = useNavigate();
+
   const handleSync = async () => {
     setLoading(true);
-    setResult(null);
     setError(null);
+    setResult(null);
 
-    const payload = {
-      hostnames:
-        selectedDevices.length === 0
-          ? null
-          : selectedDevices.map((id) => {
-              const dev = devices.find((d) => d.id === id);
-              return dev.hostname;
-            }),
-    };
+    const hostnames =
+      selectedDevices.length === 0
+        ? null
+        : selectedDevices.map((id) => {
+            const dev = devices.find((d) => d.id === id);
+            return dev.hostname;
+          });
 
     try {
-      const res = await axios.post(`${API_BASE}/devices/sync`, payload);
-      setResult(res.data);
+      const data = await syncDevices(hostnames);
+
+      if (data.success) {
+        setResult({
+          message: "Background job submitted successfully",
+          job_id: data.job_id,
+        });
+        navigate("/jobs");
+      } else {
+        setResult({
+          message: "Background job failed to submit",
+          details: data.message || "Unknown error",
+        });
+      }
     } catch (err) {
       setError(err.response?.data || { error: err.message });
     } finally {
@@ -45,19 +59,18 @@ function App() {
     }
   };
 
+
+
   const handleListDevices = async () => {
     setLoading(true);
     setError(null);
     setResult(null);
 
     try {
-      const res = await axios.get(`${API_BASE}/devices`, {
-        params: { page, page_size: pageSize },
-      });
+      // Call shared API helper
+      const data = await listDevices(page, pageSize);
 
-      console.log("API response:", res.data);
-
-      const data = res.data;
+      console.log("API response:", data);
 
       if (Array.isArray(data.items)) {
         // New paginated backend
@@ -80,86 +93,150 @@ function App() {
     }
   };
 
+
   // Reload when page or pageSize changes
   useEffect(() => {
     handleListDevices();
   }, [page, pageSize]);
   
+
+  const handleSyncEoxForModules = async ({ serialNumbers = null, deviceIds = null }) => {
+    setLoading(true);
+    setError(null);
+    setResult(null);
+
+    try {
+      // Build payload based on what was provided
+      const payload = {
+        serial_numbers: serialNumbers && serialNumbers.length > 0 ? serialNumbers : null,
+        device_ids: deviceIds && deviceIds.length > 0 ? deviceIds : null,
+      };
+
+      // Call shared API helper
+      const data = await syncModulesEox(payload);
+
+      if (data.success) {
+        setResult({
+          message: "Background job submitted successfully",
+          job_id: data.job_id,
+        });
+        navigate("/jobs");
+      } else {
+        setResult({
+          message: "Background job failed to submit",
+          details: data.message || "Unknown error",
+        });
+      }
+    } catch (err) {
+      setError(err.response?.data || { error: err.message });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
-    <BrowserRouter>
-      <div className="app-root">
-        <header className="app-header">
-          <h1>Device Sync Dashboard</h1>
-        </header>
+  <div className="app-root">
+    <header className="app-header">
+      <h1>Device Sync Dashboard</h1>
+    </header>
 
-        <main className="app-main">
-          <div className="toolbar">
-            {/* <button onClick={handleListDevices} disabled={loading}>
-              {loading ? "Loading…" : "List Devices"}
-            </button> */}
-            {/* <button
-              onClick={() => {
-                console.log("List Devices clicked");
-                handleListDevices();
-              }}
-              disabled={loading}
-            >
-              {loading ? "Loading…" : "List Devices"}
-            </button> */}
-            <button
-              type="button"
-              onClick={() => {
-                console.log("Button clicked");
-                handleListDevices();
-              }}
-            >
-              List Devices
-            </button>
+    <main className="app-main">
 
-            <button onClick={handleSync} disabled={loading}>
-              {selectedDevices.length === 0
-                ? "Sync Devices (All)"
-                : `Sync (${selectedDevices.length}) Selected Devices`}
-            </button>
+      {/* ⭐ Toolbar ⭐ */}
+      <div className="toolbar">
+        <button
+          type="button"
+          onClick={() => {
+            console.log("Button clicked");
+            navigate("/");
+            handleListDevices();
+          }}
+        >
+          List Devices
+        </button>
 
-            <button disabled>
-              {selectedDevices.length === 0
-                ? "Sync Warranty Information (All)"
-                : `Sync Warranty Information (${selectedDevices.length})`}
-            </button>
-          </div>
+        <button onClick={handleSync} disabled={loading}>
+          {selectedDevices.length === 0
+            ? "Sync Devices (All)"
+            : `Sync (${selectedDevices.length}) Selected Devices`}
+        </button>
 
-          {loading && <div className="status status-info">Processing…</div>}
+        <button
+          onClick={() => {
+            const deviceIds =
+              selectedDevices.length === 0
+                ? devices.map((d) => d.id)
+                : selectedDevices;
 
-          {error && (
-            <div className="status status-error">
-              <h3>Error</h3>
-              <pre>{JSON.stringify(error, null, 2)}</pre>
-            </div>
-          )}
+            handleSyncEoxForModules({ deviceIds });
+          }}
+        > {selectedDevices.length === 0
+            ? "Sync Warranty Information (All)"
+            : `Sync Warranty Information (${selectedDevices.length})`}
+        </button>
 
-          {Array.isArray(devices) && devices.length > 0 && (
-            <DeviceList
-              devices={devices}
-              onSelectionChange={setSelectedDevices}
-              page={page}
-              setPage={setPage}
-              pageSize={pageSize}
-              setPageSize={setPageSize}
-              total={total}
-            />
-          )}
-
-          {result && (
-            <div className="status status-success">
-              <h3>Result</h3>
-              <pre>{JSON.stringify(result, null, 2)}</pre>
-            </div>
-          )}
-        </main>
+        <button
+          type="button"
+          onClick={() => navigate("/jobs")}
+          style={{ marginLeft: "10px" }}
+        >
+          View Background Jobs
+        </button>
       </div>
-    </BrowserRouter>
-  );
+
+      {/* ⭐ ROUTING ⭐ */}
+      <Routes>
+
+        {/* Default dashboard route */}
+        <Route
+          path="/"
+          element={
+            <>
+              {loading && (
+                <div className="status status-info">Processing…</div>
+              )}
+
+              {error && (
+                <div className="status status-error">
+                  <h3>Error</h3>
+                  <pre>{JSON.stringify(error, null, 2)}</pre>
+                </div>
+              )}
+
+              {result && (
+                <div className="status status-success">
+                  <h3>Result</h3>
+                  <pre>{JSON.stringify(result, null, 2)}</pre>
+                </div>
+              )}
+
+              {Array.isArray(devices) && devices.length > 0 && (
+                <DeviceList
+                  devices={devices}
+                  onSelectionChange={setSelectedDevices}
+                  page={page}
+                  setPage={setPage}
+                  pageSize={pageSize}
+                  setPageSize={setPageSize}
+                  total={total}
+                  onSyncEox={handleSyncEoxForModules}
+                  setError={setError}
+                />
+              )}
+            </>
+          }
+        />
+
+        {/* Jobs page route */}
+        <Route path="/jobs" element={<Jobs />} />
+
+      </Routes>
+      {/* ⭐ ROUTING ENDS HERE ⭐ */}
+
+    </main>
+  </div>
+);
+
 }
 
 export default App;

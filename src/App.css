@@ -163,9 +163,6 @@ th { vertical-align: top; }
   background-color: #d1f7d6 !important; /* soft mint green */
 }
 
-
-
-
 /* Sortable column headers */
 .sortable {
   cursor: pointer;
