@@ -1,6 +1,9 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { Link } from "react-router-dom";
 import "./App.css";
+import { useContext } from "react";
+import { TimezoneContext } from "./context/TimezoneContext";
+
 
 /**
  * DeviceList
@@ -27,6 +30,8 @@ export default function DeviceList({
   onSyncEox,
   setError  
 }) {
+
+  const { timezone, setTimezone } = useContext(TimezoneContext);
   const [expanded, setExpanded] = useState({});
   const [expandedInterfaces, setExpandedInterfaces] = useState({});
   const [expandedModules, setExpandedModules] = useState({});
@@ -39,6 +44,10 @@ export default function DeviceList({
     mgmt: "",
     model: "",
     serial: "",
+    location: "",
+    device_group: "",
+    last_updated: "",
+    os_version: "",
   });
 
   const [showModuleFilters, setShowModuleFilters] = useState(false);
@@ -109,19 +118,47 @@ export default function DeviceList({
     }));
   };
 
+  
   // Apply top-level filters
   const filteredDevices = useMemo(() => {
+    // Normalize all filter values once
+    const f = {
+      hostname: filters.hostname.toLowerCase(),
+      mgmt: filters.mgmt.toLowerCase(),
+      model: filters.model.toLowerCase(),
+      serial: filters.serial.toLowerCase(),
+      location: filters.location.toLowerCase(),
+      device_group: filters.device_group.toLowerCase(),
+      last_updated: filters.last_updated.toLowerCase(),
+      os_version: filters.os_version.toLowerCase(),
+    };
+
     return devices.filter((d) => {
       const hostname = (d.hostname || "").toLowerCase();
       const mgmt = (d.mgmt_address || "").toLowerCase();
       const model = (d.model || "").toLowerCase();
       const serial = (d.serial_number || "").toLowerCase();
 
+      const location = (d.location || "").toLowerCase();
+      const group = (d.device_group || "").toLowerCase();
+
+      const updated = d.last_updated
+        ? new Date(d.last_updated).toLocaleString().toLowerCase()
+        : "";
+
+      const osVersion = d.software_info?.version?.os_version
+        ? d.software_info.version.os_version.toLowerCase()
+        : "";
+
       return (
-        hostname.includes(filters.hostname.toLowerCase()) &&
-        mgmt.includes(filters.mgmt.toLowerCase()) &&
-        model.includes(filters.model.toLowerCase()) &&
-        serial.includes(filters.serial.toLowerCase())
+        hostname.includes(f.hostname) &&
+        mgmt.includes(f.mgmt) &&
+        model.includes(f.model) &&
+        serial.includes(f.serial) &&
+        location.includes(f.location) &&
+        group.includes(f.device_group) &&
+        updated.includes(f.last_updated) &&
+        osVersion.includes(f.os_version)
       );
     });
   }, [devices, filters]);
@@ -158,6 +195,7 @@ export default function DeviceList({
     <section className="panel panel-result">
       <div className="title-row">
         <h3>Devices in Inventory</h3>
+
         <button
           className="button"
           onClick={() => setShowFilters((prev) => !prev)}
@@ -279,13 +317,13 @@ export default function DeviceList({
               )}
             </th>
 
-            {/* Software Info */}
+            {/* OS Version */}
             <th
               className="sortable"
-              onClick={() => requestSort("software_info")}
+              onClick={() => requestSort("os_version")}
             >
-              Software Info{" "}
-              {sortConfig.key === "software_info"
+              OS Version{" "}
+              {sortConfig.key === "os_version"
                 ? sortConfig.direction === "asc"
                   ? "▲"
                   : "▼"
@@ -295,13 +333,14 @@ export default function DeviceList({
                 <input
                   className="filter-input"
                   placeholder="Filter"
-                  value={filters.software_info}
+                  value={filters.os_version}
                   onChange={(e) =>
-                    setFilters({ ...filters, software_info: e.target.value })
+                    setFilters({ ...filters, os_version: e.target.value })
                   }
                 />
               )}
             </th>
+
 
 
             {/* Location */}
@@ -440,7 +479,9 @@ export default function DeviceList({
                   {/* Last Updated */}
                   <td>
                     {d.last_updated
-                      ? new Date(d.last_updated).toLocaleString()
+                      ? new Date(d.last_updated).toLocaleString("en-AU", {
+                          timeZone: timezone,
+                        })
                       : "—"}
                   </td>
 
@@ -464,7 +505,7 @@ export default function DeviceList({
 
                 {expanded[d.id] && (
                   <tr className="expanded-row">
-                    <td colSpan="8">
+                    <td colSpan="11">
                       {/* ========================= INTERFACES SECTION ========================= */}
                       <h4
                         style={{

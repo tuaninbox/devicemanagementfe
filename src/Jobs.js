@@ -1,6 +1,10 @@
 import React, { useEffect, useState } from "react";
+import { useContext } from "react";
+import { TimezoneContext } from "./context//TimezoneContext";
 
 function Jobs() {
+  const { timezone, setTimezone } = useContext(TimezoneContext);
+
   const [jobs, setJobs] = useState([]);
 
   const loadJobs = async () => {
@@ -15,7 +19,7 @@ function Jobs() {
 
   useEffect(() => {
     loadJobs();
-    const interval = setInterval(loadJobs, 5000);
+    const interval = setInterval(loadJobs, 10000);
     return () => clearInterval(interval);
   }, []);
 
@@ -42,8 +46,21 @@ function Jobs() {
               <td>{job.category}</td>
               <td>{job.description}</td>
               <td>{job.status}</td>
-              <td>{job.started_at || "-"}</td>
-              <td>{job.finished_at || "-"}</td>
+             <td>
+                {job.started_at
+                  ? new Date(job.started_at).toLocaleString("en-AU", {
+                      timeZone: timezone,
+                    })
+                  : "-"}
+              </td>
+              <td>
+                {job.finished_at
+                  ? new Date(job.finished_at).toLocaleString("en-AU", {
+                      timeZone: timezone,
+                    })
+                  : "-"}
+              </td>
+
             </tr>
           ))}
         </tbody>

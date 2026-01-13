@@ -10,11 +10,11 @@ body {
   flex-direction: column;
 }
 
-.app-header {
+/* .app-header {
   background: #1f2937;
   color: white;
   padding: 1rem;
-}
+} */
 
 .app-main {
   display: flex;
@@ -473,4 +473,28 @@ mark {
   display: flex;
   align-items: center;
   gap: 12px;
+}
+
+/* Timezone for Display time */
+.app-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 20px;
+  /* background: #f8f9fa; */
+  background: #1f2937;
+  color: white;
+  border-bottom: 1px solid #ddd;
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+}
+
+.timezone-select {
+  padding: 4px 6px;
+  border-radius: 4px;
+  border: 1px solid #ccc;
+  background: white;
 }

@@ -6,9 +6,10 @@ import Jobs from "./Jobs";
 import "./App.css";
 import { syncDevices, syncModulesEox, listDevices } from "./api/sync";
 import { useConfirmDialog } from "./hooks/useConfirmDialog";
+import { TimezoneContext } from "./context/TimezoneContext";
 
 function App() {
-
+  const [timezone, setTimezone] = useState("Australia/Perth");
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState(null);
   const [error, setError] = useState(null);
@@ -60,14 +61,16 @@ function App() {
 
       if (data.success) {
         setResult({
-          message: "Background job submitted successfully",
-          job_id: data.job_id,
+          type: "success",
+          title: "Device Sync Started",
+          text: `A background job has been created to sync ${selectedDevices.length === 0 ? "all devices" : selectedDevices.length + " device(s)"}.`,
+          jobId: data.job_id
         });
-        //navigate("/jobs");
       } else {
         setResult({
-          message: "Background job failed to submit",
-          details: data.message || "Unknown error",
+          type: "error",
+          title: "Device Sync Failed",
+          text: data.message || "The server returned an unexpected error."
         });
       }
     } catch (err) {
@@ -191,14 +194,28 @@ function App() {
   };
 
   return (
-    
+    <TimezoneContext.Provider value={{ timezone, setTimezone }}>
   <div className="app-root">
     <header className="app-header">
-      <div className={`top-loading-bar ${loading ? "active" : ""}`} />
       <h1>Device Sync Dashboard</h1>
+      <div style={{ marginBottom: "10px" }}>
+          <label style={{ marginRight: "8px" }}>Timezone:</label>
+          <select
+            value={timezone}
+            onChange={(e) => setTimezone(e.target.value)}
+            className="timezone-select"
+          >
+            <option value="Australia/Perth">Australia/Perth (GMT+8)</option>
+            <option value="Asia/Singapore">Asia/Singapore (GMT+8)</option>
+            <option value="Asia/Shanghai">Asia/Shanghai (GMT+8)</option>
+            <option value="UTC">UTC</option>
+            <option value="Australia/Sydney">Australia/Sydney (AEST/AEDT)</option>
+          </select>
+        </div>
     </header>
 
     <main className="app-main">
+      <div className={`top-loading-bar ${loading ? "active" : ""}`} />
       {/* ? Toolbar ? */}
       <div className="toolbar">
         <button
@@ -309,14 +326,12 @@ function App() {
         {/* Jobs page route */}
         <Route path="/jobs" element={<Jobs />} />
         <Route path="/devices/:hostname/config" element={<DeviceConfigOps />} />
-
-
       </Routes>
     </main>
   </div>
+  </TimezoneContext.Provider>
 );
 
 }
 
 export default App;
-
