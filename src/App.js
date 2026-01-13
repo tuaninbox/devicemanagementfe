@@ -1,15 +1,14 @@
 import React, { useState, useEffect, useCallback} from "react";
-import axios from "axios";
 import { Routes, Route, useNavigate } from "react-router-dom";
 import DeviceList from "./DeviceList";
+import DeviceConfigOps from "./DeviceConfig";
 import Jobs from "./Jobs";
 import "./App.css";
 import { syncDevices, syncModulesEox, listDevices } from "./api/sync";
-
-const API_BASE = "http://localhost:8000";
-
+import { useConfirmDialog } from "./hooks/useConfirmDialog";
 
 function App() {
+
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState(null);
   const [error, setError] = useState(null);
@@ -24,6 +23,7 @@ function App() {
 
   const navigate = useNavigate();
 
+  const { confirm, ConfirmDialog } = useConfirmDialog();
   const handleSync = async () => {
     setLoading(true);
     setError(null);
@@ -37,6 +37,24 @@ function App() {
             return dev.hostname;
           });
 
+    
+    const proceed = await confirm({
+      title: "Sync Devices",
+      message: "Do you want to sync selected devices?",
+      confirmText: "Yes",
+      cancelText: "No",
+    });
+    if (!proceed) return;
+      
+    // // Confirmation dialog
+    // const message =
+    //   selectedDevices.length === 0
+    //     ? "Sync all devices?"
+    //     : `Sync ${selectedDevices.length} device(s):\n${hostnames.join(", ")}?`;
+
+    // const proceed = window.confirm(message);
+    // if (!proceed) return; // user canceled
+
     try {
       const data = await syncDevices(hostnames);
 
@@ -45,7 +63,7 @@ function App() {
           message: "Background job submitted successfully",
           job_id: data.job_id,
         });
-        navigate("/jobs");
+        //navigate("/jobs");
       } else {
         setResult({
           message: "Background job failed to submit",
@@ -53,7 +71,16 @@ function App() {
         });
       }
     } catch (err) {
-      setError(err.response?.data || { error: err.message });
+      setError({
+        title: "Operation Failed",
+        text:
+          err.response?.data?.message ||
+          err.response?.data?.error ||
+          err.message ||
+          "An unexpected error occurred.",
+        details: err.response?.data || null
+      });
+
     } finally {
       setLoading(false);
     }
@@ -87,7 +114,16 @@ function App() {
       }
 
     } catch (err) {
-      setError(err.response?.data || { error: err.message });
+      setError({
+        title: "Operation Failed",
+        text:
+          err.response?.data?.message ||
+          err.response?.data?.error ||
+          err.message ||
+          "An unexpected error occurred.",
+        details: err.response?.data || null
+      });
+
     } finally {
       setLoading(false);
     }
@@ -112,37 +148,58 @@ function App() {
         device_ids: deviceIds && deviceIds.length > 0 ? deviceIds : null,
       };
 
+      const proceed = await confirm({
+        title: "Sync Devices",
+        message: "Do you want to sync selected devices?",
+        confirmText: "Yes",
+        cancelText: "No",
+      });
+      if (!proceed) return;
+      
       // Call shared API helper
       const data = await syncModulesEox(payload);
 
       if (data.success) {
         setResult({
-          message: "Background job submitted successfully",
-          job_id: data.job_id,
+          type: "success",
+          title: "Warranty Sync Started",
+          text: `A background job has been created to sync warranty information for ${selectedDevices.length === 0 ? "all devices" : selectedDevices.length + " device(s)"}.`,
+          jobId: data.job_id
         });
-        navigate("/jobs");
       } else {
         setResult({
-          message: "Background job failed to submit",
-          details: data.message || "Unknown error",
+          type: "error",
+          title: "Warranty Sync Failed",
+          text: data.message || "The server returned an unexpected error."
         });
       }
+
     } catch (err) {
-      setError(err.response?.data || { error: err.message });
+      setError({
+        title: "Operation Failed",
+        text:
+          err.response?.data?.message ||
+          err.response?.data?.error ||
+          err.message ||
+          "An unexpected error occurred.",
+        details: err.response?.data || null
+      });
+
     } finally {
       setLoading(false);
     }
   };
 
   return (
+    
   <div className="app-root">
     <header className="app-header">
+      <div className={`top-loading-bar ${loading ? "active" : ""}`} />
       <h1>Device Sync Dashboard</h1>
     </header>
 
     <main className="app-main">
-
-      {/* ⭐ Toolbar ⭐ */}
+      {/* ? Toolbar ? */}
       <div className="toolbar">
         <button
           type="button"
@@ -160,7 +217,7 @@ function App() {
             ? "Sync Devices (All)"
             : `Sync (${selectedDevices.length}) Selected Devices`}
         </button>
-
+        <ConfirmDialog />
         <button
           onClick={() => {
             const deviceIds =
@@ -184,7 +241,7 @@ function App() {
         </button>
       </div>
 
-      {/* ⭐ ROUTING ⭐ */}
+      {/* ? ROUTING ? */}
       <Routes>
 
         {/* Default dashboard route */}
@@ -192,23 +249,45 @@ function App() {
           path="/"
           element={
             <>
-              {loading && (
-                <div className="status status-info">Processing…</div>
-              )}
+              {/* {loading && (
+                <div className="status status-info">Processing�</div>
+              )} */}
 
+{/* 
               {error && (
                 <div className="status status-error">
                   <h3>Error</h3>
                   <pre>{JSON.stringify(error, null, 2)}</pre>
                 </div>
-              )}
+              )} */}
 
-              {result && (
-                <div className="status status-success">
-                  <h3>Result</h3>
-                  <pre>{JSON.stringify(result, null, 2)}</pre>
+              {/* Failed result */}
+              {error && (
+                <div className="status status-error">
+                  <h3>{error.title}</h3>
+                  <p>{error.text}</p>
+
+                  {error.details && (
+                    <details style={{ marginTop: "10px" }}>
+                      <summary>Show technical details</summary>
+                      <pre>{JSON.stringify(error.details, null, 2)}</pre>
+                    </details>
+                  )}
                 </div>
               )}
+
+              {/* Successful result */ }
+              {result && (
+                <div className={`status ${result.type === "error" ? "status-error" : "status-success"}`}>
+                  <h3>{result.title}</h3>
+                  <p>{result.text}</p>
+
+                  {result.jobId && (
+                    <p><strong>Job ID:</strong> {result.jobId}</p>
+                  )}
+                </div>
+              )}
+
 
               {Array.isArray(devices) && devices.length > 0 && (
                 <DeviceList
@@ -229,10 +308,10 @@ function App() {
 
         {/* Jobs page route */}
         <Route path="/jobs" element={<Jobs />} />
+        <Route path="/devices/:hostname/config" element={<DeviceConfigOps />} />
+
 
       </Routes>
-      {/* ⭐ ROUTING ENDS HERE ⭐ */}
-
     </main>
   </div>
 );
@@ -240,3 +319,4 @@ function App() {
 }
 
 export default App;
+

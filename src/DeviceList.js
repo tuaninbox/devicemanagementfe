@@ -279,8 +279,105 @@ export default function DeviceList({
               )}
             </th>
 
-            <th className="center">Config</th>
-            <th className="center">Operational Data</th>
+            {/* Software Info */}
+            <th
+              className="sortable"
+              onClick={() => requestSort("software_info")}
+            >
+              Software Info{" "}
+              {sortConfig.key === "software_info"
+                ? sortConfig.direction === "asc"
+                  ? "▲"
+                  : "▼"
+                : ""}
+              <br />
+              {showFilters && (
+                <input
+                  className="filter-input"
+                  placeholder="Filter"
+                  value={filters.software_info}
+                  onChange={(e) =>
+                    setFilters({ ...filters, software_info: e.target.value })
+                  }
+                />
+              )}
+            </th>
+
+
+            {/* Location */}
+            <th
+              className="sortable"
+              onClick={() => requestSort("location")}
+            >
+              Location{" "}
+              {sortConfig.key === "location"
+                ? sortConfig.direction === "asc"
+                  ? "▲"
+                  : "▼"
+                : ""}
+              <br />
+              {showFilters && (
+                <input
+                  className="filter-input"
+                  placeholder="Filter"
+                  value={filters.location}
+                  onChange={(e) =>
+                    setFilters({ ...filters, location: e.target.value })
+                  }
+                />
+              )}
+            </th>
+
+            {/* Device Group */}
+            <th
+              className="sortable"
+              onClick={() => requestSort("device_group")}
+            >
+              Device Group{" "}
+              {sortConfig.key === "device_group"
+                ? sortConfig.direction === "asc"
+                  ? "▲"
+                  : "▼"
+                : ""}
+              <br />
+              {showFilters && (
+                <input
+                  className="filter-input"
+                  placeholder="Filter"
+                  value={filters.device_group}
+                  onChange={(e) =>
+                    setFilters({ ...filters, device_group: e.target.value })
+                  }
+                />
+              )}
+            </th>
+
+            {/* Last Updated */}
+            <th
+              className="sortable"
+              onClick={() => requestSort("last_updated")}
+            >
+              Last Updated{" "}
+              {sortConfig.key === "last_updated"
+                ? sortConfig.direction === "asc"
+                  ? "▲"
+                  : "▼"
+                : ""}
+              <br />
+              {showFilters && (
+                <input
+                  className="filter-input"
+                  placeholder="Filter"
+                  value={filters.last_updated}
+                  onChange={(e) =>
+                    setFilters({ ...filters, last_updated: e.target.value })
+                  }
+                />
+              )}
+            </th>
+
+
+            <th className="center">Config and Ops Data</th>
           </tr>
         </thead>
 
@@ -294,6 +391,7 @@ export default function DeviceList({
             return (
               <React.Fragment key={d.id}>
                 <tr className={selected[d.id] ? "row-selected" : ""}>
+                  {/* Checkbox */}
                   <td className="center">
                     <input
                       type="checkbox"
@@ -302,6 +400,7 @@ export default function DeviceList({
                     />
                   </td>
 
+                  {/* Row number */}
                   <td className="center">{rowNumber}</td>
 
                   {/* Hostname + expand icon */}
@@ -320,25 +419,39 @@ export default function DeviceList({
                     {d.hostname}
                   </td>
 
+                  {/* Management IP */}
                   <td>{d.mgmt_address}</td>
+
+                  {/* Model */}
                   <td>{d.model}</td>
+
+                  {/* Serial */}
                   <td>{d.serial_number}</td>
 
-                  <td className="center">
-                    {d.running_config_path ? (
-                      <Link className="button" to={`/file/${d.id}/config`}>
-                        View
-                      </Link>
-                    ) : (
-                      "-"
-                    )}
+                  {/* Software Info */}
+                  <td>{d.software_info?.version?.os_version || "—"}</td>
+
+                  {/* Location */}
+                  <td>{d.location || "—"}</td>
+
+                  {/* Device Group */}
+                  <td>{d.device_group || "—"}</td>
+
+                  {/* Last Updated */}
+                  <td>
+                    {d.last_updated
+                      ? new Date(d.last_updated).toLocaleString()
+                      : "—"}
                   </td>
 
+                  {/* Config View Link */}
                   <td className="center">
-                    {(d.routing_table_path || d.mac_table_path) ? (
+                    {d.running_config_path ? (
                       <Link
                         className="button"
-                        to={`/file/${d.id}/operational`}
+                        to={`/devices/${d.hostname}/config`}
+                        target="_blank"
+                        rel="noopener noreferrer"
                       >
                         View
                       </Link>
@@ -347,6 +460,7 @@ export default function DeviceList({
                     )}
                   </td>
                 </tr>
+
 
                 {expanded[d.id] && (
                   <tr className="expanded-row">
@@ -905,20 +1019,6 @@ export default function DeviceList({
             Next
           </button>
 
-          {/* <select
-            className="page-size-select"
-            value={pageSize}
-            onChange={(e) => {
-              const newSize = e.target.value === "all" ? 999 : Number(e.target.value);
-              setPageSize(newSize);
-              if (setPage) setPage(1);
-            }}
-          >
-            <option value={25}>25</option>
-            <option value={50}>50</option>
-            <option value={100}>100</option>
-            <option value="all">All</option>
-          </select> */}
           <select
             className="page-size-select"
             value={pageSize === 999999 ? "all" : pageSize}

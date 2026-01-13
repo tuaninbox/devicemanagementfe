@@ -188,3 +188,289 @@ th { vertical-align: top; }
 .page-size-select {
   margin-left: 12px; /* or 16px if you want more breathing room */
 }
+
+/* Top loading bar */
+.top-loading-bar {
+  height: 4px;
+  background: #0078d4;
+  width: 0%;
+  transition: width 0.3s ease;
+}
+
+.top-loading-bar.active {
+  width: 100%;
+}
+/* End of Top Loading bar */
+
+
+/* Device Configuration Page */
+
+.config-page {
+  padding: 20px;
+}
+
+.config-loading {
+  padding: 20px;
+  font-size: 16px;
+}
+
+.config-error {
+  padding: 20px;
+  color: red;
+  font-size: 16px;
+}
+
+/* Blue action buttons */
+/*.config-actions button,*/
+.config-search button {
+  padding: 8px 16px;
+  background: #0078d4;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: background 0.2s ease;
+}
+
+.material-symbols-rounded {
+  font-family: "Material Symbols Rounded" !important;
+  font-weight: normal;
+  font-style: normal;
+  font-size: 20px;
+  line-height: 1;
+  letter-spacing: normal;
+  text-transform: none;
+  display: inline-block;
+  white-space: nowrap;
+  direction: ltr;
+
+  /* Required variable font settings */
+  font-variation-settings:
+    "FILL" 0,
+    "wght" 400,
+    "GRAD" 0,
+    "opsz" 24;
+}
+
+
+
+.config-actions button:hover,
+.config-search button:hover {
+  background: #005fa3;
+}
+
+.config-actions button:active,
+.config-search button:active {
+  background: #004f87;
+}
+
+.config-actions {
+  margin-bottom: 15px;
+}
+
+.config-search {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 15px;
+}
+
+.config-search input {
+  padding: 6px 10px;
+  width: 250px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+/* Tabs */
+.config-tabs {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 15px;
+}
+
+.config-tabs button {
+  padding: 10px 18px;
+  border: none;
+  background: #e6e6e6;
+  cursor: pointer;
+  border-radius: 6px;
+  font-weight: 500;
+}
+
+.config-tabs button.active {
+  background: #0078d4;
+  color: white;
+  font-weight: bold;
+}
+
+.config-tabs button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Code block */
+.config-block {
+  padding: 15px;
+  border-radius: 6px;
+  max-height: 600px;
+  overflow-y: auto;
+  font-family: monospace;
+  font-size: 14px;
+  line-height: 1.4;
+  white-space: pre-wrap;
+}
+
+/* Different background colors for each section */
+.config-block-config {
+  background: #f0f7ff; /* light blue */
+}
+
+.config-block-operational {
+  background: #f5f5f5; /* light grey */
+}
+
+mark {
+  background: yellow;
+  padding: 0 2px;
+}
+
+/* End of Device Configuration Page */
+
+
+
+/* Standout configuration section */
+.config-section {
+  background: white;
+  border-radius: 10px;
+  border-left: 5px solid #0078d4;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+  margin-top: 20px;
+}
+
+/* Header row */
+.config-section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 18px;
+  background: #eef6ff;
+  border-bottom: 1px solid #d0e2ff;
+  border-radius: 10px 10px 0 0;
+}
+
+.config-section-header h3 {
+  margin: 0;
+  font-size: 1.15rem;
+  font-weight: 600;
+  color: #1e3a8a;
+}
+
+/* Copy button */
+.copy-config-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: #0078d4;
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: background 0.15s ease;
+}
+
+.copy-config-btn:hover {
+  background: #005fa3;
+}
+
+/* Body */
+.config-section-body {
+  padding: 18px;
+}
+
+/* Download button */
+/* Action buttons inside the config header */
+.config-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* Small icon-only button (Download) */
+.icon-btn {
+  background: #0078d4;
+  color: white;
+  border: none;
+  padding: 6px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  transition: background 0.15s ease;
+}
+
+.icon-btn:hover {
+  background: #005fa3;
+}
+
+.icon-btn .material-symbols-rounded {
+  font-size: 20px;
+}
+/* End of Download Button */
+
+/* Search group in Device Config */
+/* Search group container */
+.search-group {
+  display: flex;
+  align-items: center;
+  background: white;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  padding: 4px 6px;
+  gap: 6px;
+}
+
+/* Search icon inside input */
+.search-icon {
+  font-size: 20px;
+  color: #64748b;
+}
+
+/* Search input */
+.search-input {
+  border: none;
+  outline: none;
+  font-size: 14px;
+  width: 180px;
+  background: transparent;
+}
+
+/* Make icon buttons match your theme */
+.icon-btn {
+  background: #0078d4;
+  color: white;
+  border: none;
+  padding: 6px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  transition: background 0.15s ease;
+}
+
+.icon-btn:hover {
+  background: #005fa3;
+}
+
+.icon-btn .material-symbols-rounded {
+  font-size: 20px;
+}
+
+/* Align all header actions */
+.config-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}

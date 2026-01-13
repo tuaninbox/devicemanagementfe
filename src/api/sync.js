@@ -21,3 +21,8 @@ export async function listDevices(page, pageSize) {
 
   return res.data;
 }
+
+export async function getDeviceConfigOps(hostname) {
+  const res = await axios.get(`${API_BASE}/devices/${hostname}/configops`);
+  return res.data; // returns DeviceConfigOpsEnvelope
+}
