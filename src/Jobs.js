@@ -1,27 +1,59 @@
-import React, { useEffect, useState } from "react";
-import { useContext } from "react";
-import { TimezoneContext } from "./context//TimezoneContext";
+
+import React, { useEffect, useState, useContext, useRef } from "react";
+import { TimezoneContext } from "./context/TimezoneContext";
+import { getJobs } from "./api/sync";
 
 function Jobs() {
-  const { timezone, setTimezone } = useContext(TimezoneContext);
-
+  const { timezone } = useContext(TimezoneContext);
   const [jobs, setJobs] = useState([]);
+  const isMountedRef = useRef(true);
 
   const loadJobs = async () => {
     try {
-      const response = await fetch("http://localhost:8000/jobs");
-      const data = await response.json();
-      setJobs(data);
+      const data = await getJobs();
+      if (isMountedRef.current) {
+        setJobs(data || []);
+      }
     } catch (err) {
       console.error("Failed to load jobs", err);
     }
   };
 
   useEffect(() => {
+    isMountedRef.current = true;
+
+    // initial load
     loadJobs();
-    const interval = setInterval(loadJobs, 10000);
-    return () => clearInterval(interval);
+
+    // poll every 5s
+    const interval = setInterval(loadJobs, 5000);
+
+    // cleanup
+    return () => {
+      isMountedRef.current = false;
+      clearInterval(interval);
+    };
   }, []);
+
+
+  //   const { timezone, setTimezone } = useContext(TimezoneContext);
+//   const [jobs, setJobs] = useState([]);
+
+//   const loadJobs = async () => {
+//     try {
+//       const response = await getJobs();
+//       const data = await response.json();
+//       setJobs(data);
+//     } catch (err) {
+//       console.error("Failed to load jobs", err);
+//     }
+//   };
+
+//   useEffect(() => {
+//     loadJobs();
+//     const interval = setInterval(loadJobs, 5000);
+//     return () => clearInterval(interval);
+//   }, []);
 
   return (
     <div style={{ padding: "20px" }}>
@@ -40,27 +72,20 @@ function Jobs() {
         </thead>
 
         <tbody>
-          {jobs.map(job => (
+          {jobs.map((job) => (
             <tr key={job.id}>
               <td>{job.id}</td>
               <td>{job.category}</td>
               <td>{job.description}</td>
               <td>{job.status}</td>
-             <td>
-                {job.started_at
-                  ? new Date(job.started_at).toLocaleString("en-AU", {
-                      timeZone: timezone,
-                    })
-                  : "-"}
-              </td>
-              <td>
-                {job.finished_at
-                  ? new Date(job.finished_at).toLocaleString("en-AU", {
-                      timeZone: timezone,
-                    })
-                  : "-"}
-              </td>
-
+              <td>{job.started_at  ? new Date(job.started_at).toLocaleString("en-AU", {
+                          timeZone: timezone,
+                        })
+                      : "�"}</td>
+              <td>{job.finished_at ? new Date(job.finished_at).toLocaleString("en-AU", {
+                          timeZone: timezone,
+                        })
+                      : "�"}</td>
             </tr>
           ))}
         </tbody>
@@ -70,3 +95,4 @@ function Jobs() {
 }
 
 export default Jobs;
+

@@ -15,7 +15,7 @@ export async function syncModulesEox(payload) {
 }
 
 export async function listDevices(page, pageSize) {
-  const res = await axios.get(`${API_BASE}/devices`, {
+  const res = await axios.get(`${API_BASE}/devices/`, {
     params: { page, page_size: pageSize },
   });
 
@@ -24,5 +24,10 @@ export async function listDevices(page, pageSize) {
 
 export async function getDeviceConfigOps(hostname) {
   const res = await axios.get(`${API_BASE}/devices/${hostname}/configops`);
+  return res.data; // returns DeviceConfigOpsEnvelope
+}
+
+export async function getJobs() {
+  const res = await axios.get(`${API_BASE}/jobs/`);
   return res.data; // returns DeviceConfigOpsEnvelope
 }
