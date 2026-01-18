@@ -1,8 +1,10 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { Link } from "react-router-dom";
-import "./App.css";
+import "../App.css";
 import { useContext } from "react";
-import { TimezoneContext } from "./context/TimezoneContext";
+import { TimezoneContext } from "../context/TimezoneContext";
+import { AuthContext } from "../context/AuthContext";
+import { Navigate } from "react-router-dom";
 
 
 /**
@@ -30,6 +32,7 @@ export default function DeviceList({
   onSyncEox,
   setError  
 }) {
+  const { user } = useContext(AuthContext);
 
   const { timezone, setTimezone } = useContext(TimezoneContext);
   const [expanded, setExpanded] = useState({});
@@ -191,6 +194,10 @@ export default function DeviceList({
   const totalPages =
     hasPagination && pageSize > 0 ? Math.ceil(total / pageSize) : 1;
 
+  
+  if (!user) {
+    return <Navigate to="/login" replace />;
+  }
   return (
     <section className="panel panel-result">
       <div className="title-row">

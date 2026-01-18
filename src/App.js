@@ -1,15 +1,23 @@
-import React, { useState, useEffect, useCallback} from "react";
-import { Routes, Route, useNavigate } from "react-router-dom";
-import DeviceList from "./DeviceList";
-import DeviceConfigOps from "./DeviceConfig";
-import Jobs from "./Jobs";
+import React, { useState, useEffect, useContext, useCallback} from "react";
+import { Routes, Route, useNavigate, useLocation } from "react-router-dom";
+import DeviceList from "./pages/DeviceList";
+import DeviceConfigOps from "./pages/DeviceConfig";
+import Jobs from "./pages/Jobs";
+import Login from "./pages/Login";
 import "./App.css";
 import { syncDevices, syncModulesEox, listDevices } from "./api/sync";
 import { useConfirmDialog } from "./hooks/useConfirmDialog";
+import { AuthContext } from "./context/AuthContext";
 import { TimezoneContext } from "./context/TimezoneContext";
 
 function App() {
-  const [timezone, setTimezone] = useState("Australia/Perth");
+  const location = useLocation();
+  const isLoginPage = location.pathname === "/login";
+  const { authLoading } = useContext(AuthContext);
+
+
+  const { user, logout } = useContext(AuthContext);
+  const { timezone, setTimezone } = useContext(TimezoneContext);
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState(null);
   const [error, setError] = useState(null);
@@ -47,15 +55,6 @@ function App() {
     });
     if (!proceed) return;
       
-    // // Confirmation dialog
-    // const message =
-    //   selectedDevices.length === 0
-    //     ? "Sync all devices?"
-    //     : `Sync ${selectedDevices.length} device(s):\n${hostnames.join(", ")}?`;
-
-    // const proceed = window.confirm(message);
-    // if (!proceed) return; // user canceled
-
     try {
       const data = await syncDevices(hostnames);
 
@@ -134,10 +133,15 @@ function App() {
 
 
   // Reload when page or pageSize changes
+  // useEffect(() => {
+  //   handleListDevices();
+  // }, [page, pageSize]);
   useEffect(() => {
+  if (!authLoading && user) {
     handleListDevices();
-  }, [page, pageSize]);
-  
+  }
+}, [authLoading, user, page, pageSize]);
+
 
   const handleSyncEoxForModules = async ({ serialNumbers = null, deviceIds = null }) => {
     setLoading(true);
@@ -193,9 +197,15 @@ function App() {
     }
   };
 
+
+  if (authLoading) {
+    return <div className="loading-screen">Loading...</div>;
+  }
+
+
   return (
-    <TimezoneContext.Provider value={{ timezone, setTimezone }}>
   <div className="app-root">
+    {/* {!isLoginPage && (
     <header className="app-header">
       <h1>Device Sync Dashboard</h1>
       <div style={{ marginBottom: "10px" }}>
@@ -212,11 +222,32 @@ function App() {
             <option value="Australia/Sydney">Australia/Sydney (AEST/AEDT)</option>
           </select>
         </div>
+        <div className="header-right">
+        <span>{user?.username}</span>
+        <button onClick={logout}>Logout</button>
+      </div>
     </header>
+    )} */}
+    {!isLoginPage && (
+      <header className="app-header">
+        <h1 className="app-title">Device Sync Dashboard</h1>
+
+        <div className="header-right">
+          <div className="user-info">
+            <span className="user-name">{user?.username}</span>
+          </div>
+
+          <button className="logout-button" onClick={logout}>
+            Logout
+          </button>
+        </div>
+      </header>
+    )}
 
     <main className="app-main">
       <div className={`top-loading-bar ${loading ? "active" : ""}`} />
       {/* ? Toolbar ? */}
+      {!isLoginPage && (
       <div className="toolbar">
         <button
           type="button"
@@ -257,7 +288,8 @@ function App() {
           View Background Jobs
         </button>
       </div>
-
+      )} 
+      
       {/* ? ROUTING ? */}
       <Routes>
 
@@ -266,18 +298,6 @@ function App() {
           path="/"
           element={
             <>
-              {/* {loading && (
-                <div className="status status-info">Processing�</div>
-              )} */}
-
-{/* 
-              {error && (
-                <div className="status status-error">
-                  <h3>Error</h3>
-                  <pre>{JSON.stringify(error, null, 2)}</pre>
-                </div>
-              )} */}
-
               {/* Failed result */}
               {error && (
                 <div className="status status-error">
@@ -324,12 +344,12 @@ function App() {
         />
 
         {/* Jobs page route */}
+        <Route path="/login" element={<Login />}/>
         <Route path="/jobs" element={<Jobs />} />
         <Route path="/devices/:hostname/config" element={<DeviceConfigOps />} />
       </Routes>
     </main>
   </div>
-  </TimezoneContext.Provider>
 );
 
 }

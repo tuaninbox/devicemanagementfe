@@ -1,10 +1,12 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState, useRef, useContext } from "react";
 import { useParams } from "react-router-dom";
-import { getDeviceConfigOps } from "./api/sync";
+import { getDeviceConfigOps } from "../api/sync";
+import { AuthContext } from "../context/AuthContext";
+import { Navigate } from "react-router-dom";
 
 export default function DeviceConfigOps() {
-  const { hostname } = useParams();
 
+  const { hostname } = useParams();
   const [config, setConfig] = useState("");
   const [operational, setOperational] = useState("");
   const [loading, setLoading] = useState(true);
@@ -16,30 +18,7 @@ export default function DeviceConfigOps() {
 
   const configRef = useRef(null);
   const operationalRef = useRef(null);
-
-  useEffect(() => {
-    async function load() {
-      try {
-        const envelope = await getDeviceConfigOps(hostname);
-
-        if (!envelope.success) {
-          setError(envelope.message || "Failed to load configuration");
-          return;
-        }
-
-        setConfig(envelope.result?.configuration || "");
-        setOperational(envelope.result?.operationaldata || "");
-      } catch (err) {
-        setError(err.response?.data || err.message);
-      } finally {
-        setLoading(false);
-      }
-    }
-
-    load();
-  }, [hostname]);
-
-  const downloadConfig = () => {
+   const downloadConfig = () => {
     const blob = new Blob([config], { type: "text/plain" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
@@ -89,10 +68,7 @@ export default function DeviceConfigOps() {
     scrollToMatch(prevIndex);
   };
 
-  if (loading) return <div className="config-loading">Loading configuration…</div>;
-  if (error) return <div className="config-error">Error: {JSON.stringify(error)}</div>;
-
-  const copyActiveTab = () => {
+    const copyActiveTab = () => {
     const ref = activeTab === "config" ? configRef : operationalRef;
     const text = ref.current?.innerText || "";
     navigator.clipboard.writeText(text);
@@ -100,6 +76,41 @@ export default function DeviceConfigOps() {
     setCopied(true);
     setTimeout(() => setCopied(false), 2000); // revert after 2 seconds
   };
+
+  const { user } = useContext(AuthContext);
+
+  useEffect(() => {
+
+    async function load() {
+      try {
+        const envelope = await getDeviceConfigOps(hostname);
+
+        if (!envelope.success) {
+          setError(envelope.message || "Failed to load configuration");
+          return;
+        }
+
+        setConfig(envelope.result?.configuration || "");
+        setOperational(envelope.result?.operationaldata || "");
+      } catch (err) {
+        setError(err.response?.data || err.message);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    load();
+  }, [hostname]);
+
+ 
+  if (!user) {
+      return <Navigate to="/login" replace />;
+    }
+
+  if (loading) return <div className="config-loading">Loading configuration…</div>;
+  if (error) return <div className="config-error">Error: {JSON.stringify(error)}</div>;
+
+
 
   return (
     <div className="config-page">
