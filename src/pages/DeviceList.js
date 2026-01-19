@@ -198,7 +198,15 @@ export default function DeviceList({
   if (!user) {
     return <Navigate to="/login" replace />;
   }
+
+  console.log("DeviceList total =", total);
   return (
+    <>
+     {Number(total) === 0 ? (
+   <div className="no-devices-message">
+    No synced devices found — please sync devices first.
+  </div>
+  ) : (
     <section className="panel panel-result">
       <div className="title-row">
         <h3>Devices in Inventory</h3>
@@ -1090,5 +1098,7 @@ export default function DeviceList({
         </div>
       )}
     </section>
+  )}
+  </>
   );
 }

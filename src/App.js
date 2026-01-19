@@ -326,7 +326,17 @@ function App() {
               )}
 
 
-              {Array.isArray(devices) && devices.length > 0 && (
+              {/* {Array.isArray(devices) && devices.length > 0 && ( */}
+              {/* {Array.isArray(devices) &&
+               */}
+              {loading ? ( 
+                // <div className="loading-message">Loading devices<span className="dots"></span></div> 
+                <div className="loading-wrapper">
+                  <div className="loading-spinner"></div>
+                  <p className="loading-text">Loading devices…</p>
+                </div>
+              ) : (
+              
                 <DeviceList
                   devices={devices}
                   onSelectionChange={setSelectedDevices}
