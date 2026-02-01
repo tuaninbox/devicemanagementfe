@@ -5,6 +5,7 @@ import { useContext } from "react";
 import { TimezoneContext } from "../context/TimezoneContext";
 import { AuthContext } from "../context/AuthContext";
 import { Navigate } from "react-router-dom";
+import { DeviceContext } from "../context/DeviceContext";
 
 
 /**
@@ -22,16 +23,22 @@ import { Navigate } from "react-router-dom";
  * - total: total number of devices across all pages
  */
 export default function DeviceList({
-  devices,
   onSelectionChange,
-  page,
-  setPage,
-  pageSize,
-  setPageSize,
-  total,
   onSyncEox,
   setError  
 }) {
+
+  const {
+    devices,
+    total,
+    loadingDevices,
+    loadDevices,
+    page,
+    setPage,
+    pageSize,
+    setPageSize
+  } = useContext(DeviceContext);
+
   const { user } = useContext(AuthContext);
 
   const { timezone, setTimezone } = useContext(TimezoneContext);
@@ -184,6 +191,13 @@ export default function DeviceList({
     return sortable;
   }, [filteredDevices, sortConfig]);
 
+  const start = (page - 1) * pageSize;
+  const end = start + pageSize;
+  const sortedDevicesPage = sortedDevices.slice(start, end);
+
+
+
+
   const hasPagination =
     typeof page === "number" &&
     typeof pageSize === "number" &&
@@ -199,10 +213,15 @@ export default function DeviceList({
     return <Navigate to="/login" replace />;
   }
 
-  console.log("DeviceList total =", total);
+  // console.log("DeviceList total =", total);
   return (
     <>
-     {Number(total) === 0 ? (
+     {loadingDevices ? (
+      <div className="loading-wrapper">
+        <div className="loading-spinner"></div>
+        <div className="loading-text">Loading devices…</div> 
+      </div>
+    ) : Number(total) === 0 ? (
    <div className="no-devices-message">
     No synced devices found — please sync devices first.
   </div>
@@ -211,12 +230,17 @@ export default function DeviceList({
       <div className="title-row">
         <h3>Devices in Inventory</h3>
 
-        <button
-          className="button"
-          onClick={() => setShowFilters((prev) => !prev)}
-        >
-          {showFilters ? "Hide Filters" : "Show Filters"}
-        </button>
+        <div className="title-actions">
+          <button
+            className="button"
+            onClick={() => setShowFilters((prev) => !prev)}
+          >
+            {showFilters ? "Hide Filters" : "Show Filters"}
+          </button>
+          <button className="button" onClick={loadDevices} disabled={loadingDevices}>
+            {loadingDevices ? "Refreshing..." : "Refresh Devices"}
+          </button>
+        </div>
       </div>
 
       <table className="device-table">
@@ -356,7 +380,53 @@ export default function DeviceList({
               )}
             </th>
 
+            {/* vendor */}
+            <th
+              className="sortable"
+              onClick={() => requestSort("vendor")}
+            >
+              Vendor{" "}
+              {sortConfig.key === "vendor"
+                ? sortConfig.direction === "asc"
+                  ? "▲"
+                  : "▼"
+                : ""}
+              <br />
+              {showFilters && (
+                <input
+                  className="filter-input"
+                  placeholder="Filter"
+                  value={filters.vendor}
+                  onChange={(e) =>
+                    setFilters({ ...filters, vendor: e.target.value })
+                  }
+                />
+              )}
+            </th>
 
+{           /* vendor */}
+            <th
+              className="sortable"
+              onClick={() => requestSort("type")}
+            >
+              Vendor{" "}
+              {sortConfig.key === "type"
+                ? sortConfig.direction === "asc"
+                  ? "▲"
+                  : "▼"
+                : ""}
+              <br />
+              {showFilters && (
+                <input
+                  className="filter-input"
+                  placeholder="Filter"
+                  value={filters.type}
+                  onChange={(e) =>
+                    setFilters({ ...filters, type: e.target.value })
+                  }
+                />
+              )}
+            </th>
 
             {/* Location */}
             <th
@@ -436,11 +506,11 @@ export default function DeviceList({
         </thead>
 
         <tbody>
-          {sortedDevices.map((d, index) => {
-            const rowNumber =
-              hasPagination && page && pageSize
-                ? (page - 1) * pageSize + index + 1
-                : index + 1;
+          {sortedDevicesPage.map((d, index) => {
+            const rowNumber = start + index + 1;
+              // hasPagination && page && pageSize
+              //   ? (page - 1) * pageSize + index + 1
+              //   : index + 1;
 
             return (
               <React.Fragment key={d.id}>
@@ -484,6 +554,12 @@ export default function DeviceList({
 
                   {/* Software Info */}
                   <td>{d.software_info?.version?.os_version || "—"}</td>
+                  
+                  {/* Vendor */}
+                  <td>{d.vendor}</td>
+
+                  {/* Type */}
+                  <td>{d.type}</td>
 
                   {/* Location */}
                   <td>{d.location || "—"}</td>
@@ -1054,26 +1130,31 @@ export default function DeviceList({
 
       {hasPagination && (
         <div className="pagination-bar">
-          <button
-            disabled={page <= 1}
-            onClick={() => setPage(page - 1)}
-            className="button"
-          >
-            Prev
-          </button>
+
+          {totalPages > 1 && (
+            <button
+              disabled={page <= 1}
+              onClick={() => setPage(page - 1)}
+              className="button"
+            >
+              Prev
+            </button>
+          )}
 
           <span className="pagination-info">
             Page {page} of {totalPages}{" "}
             {total ? `(Total devices: ${total})` : ""}
           </span>
 
-          <button
-            disabled={page >= totalPages}
-            onClick={() => setPage(page + 1)}
-            className="button"
-          >
-            Next
-          </button>
+          {totalPages > 1 && (
+            <button
+              disabled={page >= totalPages}
+              onClick={() => setPage(page + 1)}
+              className="button"
+            >
+              Next
+            </button>
+          )}
 
           <select
             className="page-size-select"
@@ -1097,6 +1178,7 @@ export default function DeviceList({
 
         </div>
       )}
+
     </section>
   )}
   </>

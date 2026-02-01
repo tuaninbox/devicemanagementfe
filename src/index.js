@@ -6,6 +6,7 @@ import reportWebVitals from "./reportWebVitals";
 import { BrowserRouter } from "react-router-dom";
 import { AuthProvider } from "./context/AuthContext";
 import { TimezoneProvider } from "./context/TimezoneContext";
+import { DeviceProvider } from "./context/DeviceContext";
 
 const root = ReactDOM.createRoot(document.getElementById("root"));
 
@@ -13,9 +14,11 @@ root.render(
   <React.StrictMode>
     <AuthProvider>
       <TimezoneProvider>
-        <BrowserRouter>
-          <App />
-        </BrowserRouter>
+        <DeviceProvider>
+          <BrowserRouter>
+            <App />
+          </BrowserRouter>
+        </DeviceProvider>
       </TimezoneProvider>
     </AuthProvider>
   </React.StrictMode>

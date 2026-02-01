@@ -6,6 +6,11 @@ export async function syncDevices(hostnames) {
   return res.data;
 }
 
+export async function loadInventory() {
+  const res = await api.post("/devices/load-inventory");
+  return res.data;
+}
+
 export async function syncModulesEox(payload) {
   const res = await api.post("/modules/sync-eox", payload);
   return res.data;

@@ -5,7 +5,7 @@ import { AuthContext } from "../context/AuthContext";
 import { Navigate } from "react-router-dom";
 
 export default function DeviceConfigOps() {
-
+  const { user, authLoading } = useContext(AuthContext);
   const { hostname } = useParams();
   const [config, setConfig] = useState("");
   const [operational, setOperational] = useState("");
@@ -77,7 +77,7 @@ export default function DeviceConfigOps() {
     setTimeout(() => setCopied(false), 2000); // revert after 2 seconds
   };
 
-  const { user } = useContext(AuthContext);
+  // const { user } = useContext(AuthContext);
 
   useEffect(() => {
 
@@ -102,10 +102,20 @@ export default function DeviceConfigOps() {
     load();
   }, [hostname]);
 
- 
+
+
+  if (authLoading) {
+    return (
+      <div className="loading-wrapper">
+        <div className="loading-spinner"></div>
+        <p className="loading-text">Checking authentication…</p>
+      </div>
+    );
+  }
+
   if (!user) {
-      return <Navigate to="/login" replace />;
-    }
+    return <Navigate to="/login" replace />;
+  }
 
   if (loading) return <div className="config-loading">Loading configuration…</div>;
   if (error) return <div className="config-error">Error: {JSON.stringify(error)}</div>;

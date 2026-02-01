@@ -179,6 +179,11 @@ th { vertical-align: top; }
   margin: 0;
 }
 
+.title-actions {
+  display: flex;
+  gap: 10px; /* space between buttons */
+}
+
 .page-size-select {
   margin-left: 12px; /* or 16px if you want more breathing room */
 }
@@ -670,3 +675,5 @@ mark {
     transform: translateY(0);
   }
 }
+
+

@@ -5,30 +5,31 @@ import DeviceConfigOps from "./pages/DeviceConfig";
 import Jobs from "./pages/Jobs";
 import Login from "./pages/Login";
 import "./App.css";
-import { syncDevices, syncModulesEox, listDevices } from "./api/sync";
+import { syncDevices, syncModulesEox, listDevices, loadInventory } from "./api/sync";
 import { useConfirmDialog } from "./hooks/useConfirmDialog";
 import { AuthContext } from "./context/AuthContext";
 import { TimezoneContext } from "./context/TimezoneContext";
+import { DeviceContext } from "./context/DeviceContext";
+
 
 function App() {
   const location = useLocation();
   const isLoginPage = location.pathname === "/login";
   const { authLoading } = useContext(AuthContext);
-
-
+  const { devices, total, loadDevices, setLoadingDevices, page, pageSize, setPage, setPageSize } = useContext(DeviceContext);
   const { user, logout } = useContext(AuthContext);
   const { timezone, setTimezone } = useContext(TimezoneContext);
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState(null);
   const [error, setError] = useState(null);
 
-  const [devices, setDevices] = useState([]);
+  // const [devices, setDevices] = useState([]);
   const [selectedDevices, setSelectedDevices] = useState([]);
 
   // Pagination state
-  const [page, setPage] = useState(1);
-  const [pageSize, setPageSize] = useState(50);
-  const [total, setTotal] = useState(0);
+  // const [page, setPage] = useState(1);
+  // const [pageSize, setPageSize] = useState(200);
+  // const [total, setTotal] = useState(0);
 
   const navigate = useNavigate();
 
@@ -88,59 +89,37 @@ function App() {
     }
   };
 
-
-
-  const handleListDevices = async () => {
-    setLoading(true);
-    setError(null);
-    setResult(null);
-
+  const handleLoadInventory = async () => {
     try {
-      // Call shared API helper
-      const data = await listDevices(page, pageSize);
+      setLoading(true);
+      const result = await loadInventory();
 
-      console.log("API response:", data);
-
-      if (Array.isArray(data.items)) {
-        // New paginated backend
-        setDevices(data.items);
-        setTotal(data.total ?? data.items.length);
-      } else if (Array.isArray(data)) {
-        // Old backend (plain array)
-        setDevices(data);
-        setTotal(data.length);
-      } else {
-        console.warn("Unexpected API format:", data);
-        setDevices([]);
-        setTotal(0);
-      }
-
-    } catch (err) {
-      setError({
-        title: "Operation Failed",
-        text:
-          err.response?.data?.message ||
-          err.response?.data?.error ||
-          err.message ||
-          "An unexpected error occurred.",
-        details: err.response?.data || null
+      // Optional: show success message
+      setResult({
+        type: "success",
+        title: "Inventory Load Started",
+        text: result.message,
+        jobId: result.job_id,
       });
 
+    } catch (err) {
+      console.error("Failed to load inventory", err);
+      setError("Failed to load inventory");
     } finally {
       setLoading(false);
     }
   };
 
-
   // Reload when page or pageSize changes
   // useEffect(() => {
   //   handleListDevices();
   // }, [page, pageSize]);
-  useEffect(() => {
-  if (!authLoading && user) {
-    handleListDevices();
-  }
-}, [authLoading, user, page, pageSize]);
+
+  //   useEffect(() => {
+//   if (!authLoading && user) {
+//     handleListDevices();
+//   }
+// }, [authLoading, user, page, pageSize]);
 
 
   const handleSyncEoxForModules = async ({ serialNumbers = null, deviceIds = null }) => {
@@ -197,10 +176,26 @@ function App() {
     }
   };
 
+  // useEffect(() => {
+  //   if (!authLoading && user && devices.length === 0) {
+  //     setLoadingDevices(true);
+  //     loadDevices();   // load once when app starts
+  //   }
+  // }, [authLoading, user, page, pageSize]);
 
-  if (authLoading) {
-    return <div className="loading-screen">Loading...</div>;
-  }
+  useEffect(() => {
+    const onDeviceListPage = location.pathname === "/";
+
+    if (onDeviceListPage && !authLoading && user && devices.length === 0) {
+      // setLoadingDevices(true);
+      loadDevices();
+    }
+  }, [authLoading, user, location.pathname]);
+
+  // if (authLoading) {
+  //   return <div className="loading-screen">Loading...</div>;
+  // }
+
 
 
   return (
@@ -250,11 +245,18 @@ function App() {
       {!isLoginPage && (
       <div className="toolbar">
         <button
+          onClick={handleLoadInventory}
+          disabled={loading}
+        >
+          Load Inventory
+        </button>
+
+        <button
           type="button"
           onClick={() => {
-            console.log("Button clicked");
+            // console.log("Button clicked");
             navigate("/");
-            handleListDevices();
+            // handleListDevices();
           }}
         >
           List Devices
@@ -338,13 +340,13 @@ function App() {
               ) : (
               
                 <DeviceList
-                  devices={devices}
+                  // devices={devices}
                   onSelectionChange={setSelectedDevices}
-                  page={page}
-                  setPage={setPage}
-                  pageSize={pageSize}
-                  setPageSize={setPageSize}
-                  total={total}
+                  // page={page}
+                  // setPage={setPage}
+                  // pageSize={pageSize}
+                  // setPageSize={setPageSize}
+                  // total={total}
                   onSyncEox={handleSyncEoxForModules}
                   setError={setError}
                 />
