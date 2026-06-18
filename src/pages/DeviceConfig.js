@@ -3,6 +3,8 @@ import { useParams } from "react-router-dom";
 import { getDeviceConfigOps } from "../api/sync";
 import { AuthContext } from "../context/AuthContext";
 import { Navigate } from "react-router-dom";
+import RunCommands from "../components/RunCommands";
+import PacketCapture from "../components/PacketCapture";
 
 export default function DeviceConfigOps() {
   const { user, authLoading } = useContext(AuthContext);
@@ -15,6 +17,7 @@ export default function DeviceConfigOps() {
   const [searchTerm, setSearchTerm] = useState("");
   const [matchIndex, setMatchIndex] = useState(0);
   const [copied, setCopied] = useState(false);
+  const [deviceId, setDeviceId] = useState(null);
 
   const configRef = useRef(null);
   const operationalRef = useRef(null);
@@ -92,6 +95,7 @@ export default function DeviceConfigOps() {
 
         setConfig(envelope.result?.configuration || "");
         setOperational(envelope.result?.operationaldata || "");
+        setDeviceId(envelope.result.device_id);
       } catch (err) {
         setError(err.response?.data || err.message);
       } finally {
@@ -142,7 +146,22 @@ export default function DeviceConfigOps() {
         >
           Operational Data
         </button>
+
+        <button
+          className={activeTab === "commands" ? "active" : ""}
+          onClick={() => setActiveTab("commands")}
+        >
+          Run Commands
+        </button>
+
+        <button
+          className={activeTab === "pcap" ? "active" : ""}
+          onClick={() => setActiveTab("pcap")}
+        >
+          Packet Capture
+        </button>
       </div>
+
 
       {/* Standout Section */}
       <div className="config-section">
@@ -213,7 +232,17 @@ export default function DeviceConfigOps() {
               dangerouslySetInnerHTML={{ __html: highlightText(operational) }}
             />
           )}
+
+          {activeTab === "commands" && (
+            <RunCommands deviceId={deviceId} />
+          )}
+
+          {activeTab === "pcap" && (
+            <PacketCapture deviceId={deviceId} />
+          )}
+
         </div>
+
       </div>
     </div>
   );

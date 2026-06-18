@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useContext, useCallback} from "react";
-import { Routes, Route, useNavigate, useLocation } from "react-router-dom";
+import { Routes, Route, useNavigate, Navigate, useLocation } from "react-router-dom";
 import DeviceList from "./pages/DeviceList";
 import DeviceConfigOps from "./pages/DeviceConfig";
 import Jobs from "./pages/Jobs";
@@ -10,7 +10,8 @@ import { useConfirmDialog } from "./hooks/useConfirmDialog";
 import { AuthContext } from "./context/AuthContext";
 import { TimezoneContext } from "./context/TimezoneContext";
 import { DeviceContext } from "./context/DeviceContext";
-
+import AddUser from "./pages/AddUser";
+import ChangePassword from "./pages/ChangePassword";
 
 function App() {
   const location = useLocation();
@@ -228,8 +229,24 @@ function App() {
         <h1 className="app-title">Device Sync Dashboard</h1>
 
         <div className="header-right">
-          <div className="user-info">
+          <div className="user-menu">
             <span className="user-name">{user?.username}</span>
+
+            <div className="user-dropdown">
+              <button className="user-menu-button">▼</button>
+
+              <div className="user-dropdown-content">
+                <button onClick={() => navigate("/change-password")}>
+                  Change Password
+                </button>
+
+                {user?.roles?.includes("admin") && (
+                  <button onClick={() => navigate("/add-user")}>
+                    Add Users
+                  </button>
+                )}
+              </div>
+            </div>
           </div>
 
           <button className="logout-button" onClick={logout}>
@@ -237,7 +254,7 @@ function App() {
           </button>
         </div>
       </header>
-    )}
+      )}
 
     <main className="app-main">
       <div className={`top-loading-bar ${loading ? "active" : ""}`} />
@@ -255,6 +272,7 @@ function App() {
           type="button"
           onClick={() => {
             // console.log("Button clicked");
+            setResult("");
             navigate("/");
             // handleListDevices();
           }}
@@ -299,45 +317,49 @@ function App() {
         <Route
           path="/"
           element={
-            <>
-              {/* Failed result */}
-              {error && (
-                <div className="status status-error">
-                  <h3>{error.title}</h3>
-                  <p>{error.text}</p>
+            user?.forcePasswordChange ? (
+              <Navigate to="/change-password" replace />
+            ) : (
+              <>
+                {/* Failed result */}
+                {error && (
+                  <div className="status status-error">
+                    <h3>{error.title}</h3>
+                    <p>{error.text}</p>
 
-                  {error.details && (
-                    <details style={{ marginTop: "10px" }}>
-                      <summary>Show technical details</summary>
-                      <pre>{JSON.stringify(error.details, null, 2)}</pre>
-                    </details>
-                  )}
-                </div>
-              )}
+                    {error.details && (
+                      <details style={{ marginTop: "10px" }}>
+                        <summary>Show technical details</summary>
+                        <pre>{JSON.stringify(error.details, null, 2)}</pre>
+                      </details>
+                    )}
+                  </div>
+                )}
 
-              {/* Successful result */ }
-              {result && (
-                <div className={`status ${result.type === "error" ? "status-error" : "status-success"}`}>
-                  <h3>{result.title}</h3>
-                  <p>{result.text}</p>
+                {/* Successful result */}
+                {result && (
+                  <div
+                    className={`status ${
+                      result.type === "error" ? "status-error" : "status-success"
+                    }`}
+                  >
+                    <h3>{result.title}</h3>
+                    <p>{result.text}</p>
 
-                  {result.jobId && (
-                    <p><strong>Job ID:</strong> {result.jobId}</p>
-                  )}
-                </div>
-              )}
+                    {result.jobId && (
+                      <p>
+                        <strong>Job ID:</strong> {result.jobId}
+                      </p>
+                    )}
+                  </div>
+                )}
 
-
-              {/* {Array.isArray(devices) && devices.length > 0 && ( */}
-              {/* {Array.isArray(devices) &&
-               */}
-              {loading ? ( 
-                // <div className="loading-message">Loading devices<span className="dots"></span></div> 
-                <div className="loading-wrapper">
-                  <div className="loading-spinner"></div>
-                  <p className="loading-text">Loading devices…</p>
-                </div>
-              ) : (
+                {loading ? (
+                  <div className="loading-wrapper">
+                    <div className="loading-spinner"></div>
+                    <p className="loading-text">Loading devices…</p>
+                  </div>
+                ) : (
               
                 <DeviceList
                   // devices={devices}
@@ -352,13 +374,16 @@ function App() {
                 />
               )}
             </>
-          }
+        )}
         />
 
         {/* Jobs page route */}
         <Route path="/login" element={<Login />}/>
         <Route path="/jobs" element={<Jobs />} />
         <Route path="/devices/:hostname/config" element={<DeviceConfigOps />} />
+        <Route path="/change-password" element={<ChangePassword />} />
+        <Route path="/add-user" element={<AddUser />} />
+
       </Routes>
     </main>
   </div>

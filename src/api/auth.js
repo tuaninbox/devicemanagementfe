@@ -23,3 +23,12 @@ export async function getMe() {
   );
   return res.data;
 }
+
+export async function changePassword(oldPassword, newPassword) {
+  const res = await api.post(
+    "/auth/change-password",
+    { old_password: oldPassword, new_password: newPassword },
+    { withCredentials: true }
+  );
+  return res.data;
+}

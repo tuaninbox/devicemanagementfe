@@ -12,15 +12,15 @@ const root = ReactDOM.createRoot(document.getElementById("root"));
 
 root.render(
   <React.StrictMode>
-    <AuthProvider>
-      <TimezoneProvider>
-        <DeviceProvider>
-          <BrowserRouter>
+    <BrowserRouter>
+      <AuthProvider>
+        <TimezoneProvider>
+          <DeviceProvider>
             <App />
-          </BrowserRouter>
-        </DeviceProvider>
-      </TimezoneProvider>
-    </AuthProvider>
+          </DeviceProvider>
+        </TimezoneProvider>
+      </AuthProvider>
+    </BrowserRouter>
   </React.StrictMode>
 );
 
